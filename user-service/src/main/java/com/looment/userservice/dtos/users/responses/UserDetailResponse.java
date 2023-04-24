@@ -1,8 +1,6 @@
 package com.looment.userservice.dtos.users.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.looment.userservice.entities.UsersInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

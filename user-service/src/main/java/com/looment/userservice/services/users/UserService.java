@@ -138,9 +138,7 @@ public class UserService implements IUserService {
         Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
                 .orElseThrow(() -> new UserNotExists());
 
-        UserDetailResponse userDetailResponse = modelMapper.map(users, UserDetailResponse.class);
-
-        return userDetailResponse;
+        return modelMapper.map(users, UserDetailResponse.class);
     }
 
     @Override
