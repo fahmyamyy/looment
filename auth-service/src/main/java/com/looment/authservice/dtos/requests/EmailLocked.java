@@ -1,5 +1,7 @@
 package com.looment.authservice.dtos.requests;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.io.Serializable;
@@ -8,20 +10,17 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Data
 @Builder
-@ToString
-public class OTPEmail implements Serializable {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class EmailLocked implements Serializable {
+    @JsonProperty("email")
     private String email;
+    @JsonProperty("username")
     private String username;
-    private String otp;
-
     @Override
     public String toString() {
         return "{" +
                 "\"email\": \"" + email + "\"," +
-                "\"username\": \"" + username + "\"," +
-                "\"otp\": \"" + otp + "\"" +
+                "\"username\": \"" + username + "\"" +
                 "}";
     }
-
 }
-

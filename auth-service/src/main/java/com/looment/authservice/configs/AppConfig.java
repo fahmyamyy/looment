@@ -1,8 +1,6 @@
 package com.looment.authservice.configs;
 
-//import com.looment.authservice.utils.ClassMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +18,9 @@ public class AppConfig {
     public ModelMapper modelMapper() {
         return new ModelMapper();
     }
-//    @Bean
-//    public ClassMapper classMapper() { return Mappers.getMapper(ClassMapper.class); }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
 }
