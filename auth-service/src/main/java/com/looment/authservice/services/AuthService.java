@@ -1,9 +1,7 @@
 package com.looment.authservice.services;
 
-import com.googlecode.jmapper.JMapper;
 import com.looment.authservice.dtos.requests.*;
 import com.looment.authservice.dtos.responses.TokenResponse;
-import com.looment.authservice.dtos.responses.UserInfoResponse;
 import com.looment.authservice.dtos.responses.UserResponse;
 import com.looment.authservice.entities.UserSecurity;
 import com.looment.authservice.entities.Users;
@@ -14,9 +12,10 @@ import com.looment.authservice.repositories.UserRepository;
 import com.looment.authservice.utils.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mapstruct.factory.Mappers;
 import org.modelmapper.ModelMapper;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -36,16 +35,11 @@ import java.util.UUID;
 public class AuthService implements IAuthService {
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
+    private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
     private final JwtEncoder jwtEncoder;
     private final KafkaTemplate<String, Object> template;
-
-//    private final ClassMapper mapper = Mappers.getMapper(ClassMapper.class);
-
-//    JMapper<Users, UserRegister> userMapper = new JMapper<>(Users.class, UserRegister.class);
-//    JMapper<UserResponse, Users> responseMapper = new JMapper<>(UserResponse.class, Users.class);
-//    JMapper<UserInfoResponse, Users> infoResponseMapper = new JMapper<>(UserInfoResponse.class, Users.class);
 
     private void uniqueUser(UserRegister userRegister) {
         Optional<Users> usersEmail = userRepository.findByEmailEqualsIgnoreCaseAndDeletedAtIsNull(userRegister.getEmail());
@@ -72,16 +66,18 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public void validateUser(Authentication authentication) {
-        UserSecurity userSecurity = (UserSecurity) authentication.getPrincipal();
-        Users users = userSecurity.getUser();
-        if (users.getDeletedAt() != null) {
-            throw new UserInactive();
+    public void validateUser(UserLogin userLogin) {
+        Users users = userRepository.findByUsernameEqualsIgnoreCaseAndDeletedAtIsNull(userLogin.getUsername())
+                .orElseThrow(() -> new UserNotExists());
+
+        if (users.getLockedAt() != null && users.getLockedAt().plusMinutes(15).isAfter(LocalDateTime.now())) {
+            throw new UserLocked();
         }
-        if (users.getLockedAt() != null) {
-            if (users.getLockedAt().plusMinutes(15).isAfter(LocalDateTime.now())) {
-                throw new UserLocked();
-            }
+
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userLogin.getUsername(), userLogin.getPassword()));
+        } catch (Exception e) {
+            badCredentials(userLogin.getUsername());
         }
 
         Random random = new Random();
@@ -91,14 +87,14 @@ public class AuthService implements IAuthService {
         users.setOtpExpired(LocalDateTime.now().plusMinutes(10));
         users.setAttemp(0);
 
-        OTPEmail otpEmail = OTPEmail.builder()
+        EmailOTP emailOTP = EmailOTP.builder()
                 .username(users.getUsername())
                 .email(users.getEmail())
                 .otp(otp.toString())
                 .build();
 
         userRepository.save(users);
-        template.send("user-otp", otpEmail);
+        template.send("user-otp", emailOTP.toString());
     }
 
     @Override
@@ -124,11 +120,7 @@ public class AuthService implements IAuthService {
             throw new UserFullnameInvalid();
         }
 
-
         Users newUsers = modelMapper.map(userRegister, Users.class);
-//        Users newUsers = user.getDestination(userRegister);
-//        Users newUsers = mapper.toUsers(userRegister);
-
         newUsers.setPassword(passwordEncoder.encode(userRegister.getPassword()));
 
         UsersInfo usersInfo = new UsersInfo();
@@ -149,16 +141,22 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-        public TokenResponse verifyOtp(Authentication authentication, Integer otp) {
+    public TokenResponse verifyOtp(UserLoginOTP userLoginOTP) {
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userLoginOTP.getUsername(), userLoginOTP.getPassword()));
         UserSecurity userSecurity = (UserSecurity) authentication.getPrincipal();
         Users users = userSecurity.getUser();
 
-        if (!users.getOtp().equals(otp)) {
+        if (users.getOtp() == null || !users.getOtp().equals(userLoginOTP.getOtp())) {
             throw new UserOtpInvalid();
         }
         if (users.getOtpExpired().isBefore(LocalDateTime.now())) {
             throw new UserOtpExpired();
         }
+
+        users.setAttemp(0);
+        users.setOtp(null);
+        users.setOtpExpired(null);
+        userRepository.save(users);
 
         return generateToken(users);
     }
@@ -168,14 +166,29 @@ public class AuthService implements IAuthService {
         Users users = userRepository.findByUsernameEqualsIgnoreCaseAndDeletedAtIsNull(username)
                 .orElseThrow(() -> new UserNotExists());
 
-        if (users.getAttemp() == 3) {
-            users.setLockedAt(LocalDateTime.now());
+        if (users.getAttemp() == 2) {
+            if (users.getLockedAt() == null) {
+                users.setAttemp(0);
+                users.setLockedAt(LocalDateTime.now());
+            } else {
+                users.setAttemp(0);
+                users.setLockedAt(users.getLockedAt().plusDays(1));
+            }
+            userRepository.save(users);
+
+            EmailLocked emailLocked = EmailLocked.builder()
+                    .email(users.getEmail())
+                    .username(users.getUsername())
+                    .build();
+
+            template.send("user-locked", emailLocked.toString());
             throw new UserLocked();
         } else {
             users.setAttemp(users.getAttemp() + 1);
         }
 
         userRepository.save(users);
+        throw new BadCredentials();
     }
 
     @Override
@@ -186,14 +199,26 @@ public class AuthService implements IAuthService {
         String randomPass = RandomPassword.generate();
 
         users.setPassword(passwordEncoder.encode(randomPass));
+        users.setAttemp(0);
+        users.setLockedAt(null);
         userRepository.save(users);
-//        template.send("user-reset-password", randomPass);
+
+        EmailReset emailReset = EmailReset.builder()
+                .email(users.getEmail())
+                .username(users.getUsername())
+                .password(randomPass)
+                .build();
+        template.send("user-reset-password", emailReset.toString());
     }
 
     @Override
     public void changePassword(UUID userId, PasswordRequest passwordRequest) {
         Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
                 .orElseThrow(() -> new UserNotExists());
+
+        if (!PasswordValidator.isValid(passwordRequest.getPassword())) {
+            throw new UserPasswordInvalid();
+        }
 
         users.setPassword(passwordEncoder.encode(passwordRequest.getPassword()));
         userRepository.save(users);
