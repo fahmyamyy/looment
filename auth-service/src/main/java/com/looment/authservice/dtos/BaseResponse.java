@@ -12,4 +12,6 @@ import java.io.Serializable;
 public class BaseResponse<T> implements Serializable {
     private String message;
     private T data;
+
+
 }

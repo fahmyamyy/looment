@@ -1,5 +1,6 @@
 package com.looment.authservice.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.looment.authservice.dtos.requests.PasswordRequest;
 import com.looment.authservice.dtos.requests.UserLogin;
 import com.looment.authservice.dtos.requests.UserLoginOTP;
