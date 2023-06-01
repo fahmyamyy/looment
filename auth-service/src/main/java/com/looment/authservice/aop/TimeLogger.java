@@ -35,7 +35,6 @@ public class TimeLogger implements HandlerInterceptor {
                 .or(() -> optTime.filter(time -> time < 2000).map(time -> "NOT BAD"))
                 .orElse("VERY BAD");
 
-        logger.info("Request to {}, completed in {} ms [{}]", requestURI, executionTime, score);
+        logger.info("Request to {}, finished in {} ms [{}]", requestURI, executionTime, score);
     }
 }
-
