@@ -12,7 +12,6 @@ import java.util.Date;
 @NoArgsConstructor
 public class UserRequest implements Serializable {
     private String fullname;
-    private String username;
     private String email;
     private String password;
     private String bio;

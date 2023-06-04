@@ -4,6 +4,7 @@ import com.looment.userservice.dtos.Pagination;
 import com.looment.userservice.dtos.follows.requests.FollowRequest;
 import com.looment.userservice.dtos.users.responses.UserSimpleResponse;
 import com.looment.userservice.entities.Follows;
+import com.looment.userservice.entities.FollowsRequest;
 import com.looment.userservice.entities.Users;
 import com.looment.userservice.entities.UsersInfo;
 import com.looment.userservice.exceptions.follows.FollowsDuplicate;
@@ -11,6 +12,7 @@ import com.looment.userservice.exceptions.follows.FollowsNotExists;
 import com.looment.userservice.exceptions.users.UserInfoNotExists;
 import com.looment.userservice.exceptions.users.UserNotExists;
 import com.looment.userservice.repositories.FollowRepository;
+import com.looment.userservice.repositories.FollowRequestRepository;
 import com.looment.userservice.repositories.UserInfoRepository;
 import com.looment.userservice.repositories.UserRepository;
 import com.looment.userservice.services.follows.implementations.IFollowService;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FollowService implements IFollowService {
     private final FollowRepository followRepository;
+    private final FollowRequestRepository followRequestRepository;
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
     private final ModelMapper modelMapper;
@@ -51,16 +54,16 @@ public class FollowService implements IFollowService {
 
     private Pair<List<Users>, List<UsersInfo>> validateUsers(UUID userOne, UUID userTwo) {
         Users optionalOne = userRepository.findById(userOne)
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
         Users optionalTwo = userRepository.findById(userTwo)
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
         UsersInfo infoOne = userInfoRepository.findById(optionalOne.getId())
-                .orElseThrow(() -> new UserInfoNotExists());
+                .orElseThrow(UserInfoNotExists::new);
 
         UsersInfo infoTwo = userInfoRepository.findById(optionalTwo.getId())
-                .orElseThrow(() -> new UserInfoNotExists());
+                .orElseThrow(UserInfoNotExists::new);
 
         return new ImmutablePair<>(List.of(optionalOne, optionalTwo), List.of(infoOne, infoTwo));
     }
@@ -102,29 +105,40 @@ public class FollowService implements IFollowService {
 
         Optional<Follows> optionalFollows = followRepository.findByFollowed_IdEqualsAndFollower_IdEquals(followRequest.getFollowedId(), followRequest.getFollowerId());
 
-        Follows newFollows = new Follows();
-        if (optionalFollows.isPresent()) {
-            if (optionalFollows.get().getDeletedAt() == null) {
-                throw new FollowsDuplicate();
+        Users targetUsers = users.getLeft().get(0);
+
+        if (optionalFollows.isEmpty() && targetUsers.getIsPrivate()) {
+            FollowsRequest followsRequest = new FollowsRequest();
+            followsRequest.setFollowed(users.getLeft().get(0));
+            followsRequest.setFollower(users.getLeft().get(1));
+
+            followRequestRepository.save(followsRequest);
+        } else {
+            Follows newFollows = new Follows();
+            if (optionalFollows.isPresent()) {
+                Follows existingFollows = optionalFollows.get();
+                if (existingFollows.getDeletedAt() == null) {
+                    throw new FollowsDuplicate();
+                }
+
+                newFollows = existingFollows;
+                newFollows.setCreatedAt(LocalDateTime.now());
+                newFollows.setUpdatedAt(LocalDateTime.now());
+                newFollows.setDeletedAt(null);
+            } else {
+                newFollows.setFollowed(users.getLeft().get(0));
+                newFollows.setFollower(users.getLeft().get(1));
             }
 
-            newFollows = optionalFollows.get();
-            newFollows.setCreatedAt(LocalDateTime.now());
-            newFollows.setUpdatedAt(LocalDateTime.now());
-            newFollows.setDeletedAt(null);
-        } else {
-            newFollows.setFollowed(users.getLeft().get(0));
-            newFollows.setFollower(users.getLeft().get(1));
+            UsersInfo followed = users.getRight().get(0);
+            followed.setFollowers(followed.getFollowers() + 1);
+
+            UsersInfo follower = users.getRight().get(1);
+            follower.setFollowings(follower.getFollowings() + 1);
+
+            followRepository.save(newFollows);
+            userInfoRepository.saveAll(List.of(followed, follower));
         }
-
-        UsersInfo followed = users.getRight().get(0);
-        followed.setFollowers(followed.getFollowers() + 1);
-
-        UsersInfo follower = users.getRight().get(1);
-        follower.setFollowings(follower.getFollowings() + 1);
-
-        followRepository.save(newFollows);
-        userInfoRepository.saveAll(List.of(followed, follower));
     }
 
     @Transactional

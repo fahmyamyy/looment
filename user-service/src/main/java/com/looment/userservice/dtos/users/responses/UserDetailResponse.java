@@ -17,7 +17,7 @@ public class UserDetailResponse implements Serializable {
     private UUID id;
     private String fullname;
     private String username;
-    private String email;
+    private String profileUrl;
     private String bio;
     private Date dob;
     @JsonProperty("created_at")

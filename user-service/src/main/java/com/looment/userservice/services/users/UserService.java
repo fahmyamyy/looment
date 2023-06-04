@@ -2,9 +2,11 @@ package com.looment.userservice.services.users;
 
 import com.looment.userservice.dtos.Pagination;
 import com.looment.userservice.dtos.users.requests.UserPasswordRequest;
+import com.looment.userservice.dtos.users.requests.UserPicture;
 import com.looment.userservice.dtos.users.requests.UserUpdateRequest;
 import com.looment.userservice.dtos.users.responses.UserDetailResponse;
 import com.looment.userservice.dtos.users.requests.UserRequest;
+import com.looment.userservice.dtos.users.responses.UserPictureResponse;
 import com.looment.userservice.dtos.users.responses.UserResponse;
 import com.looment.userservice.dtos.users.responses.UserSimpleResponse;
 import com.looment.userservice.entities.UsersInfo;
@@ -44,18 +46,6 @@ public class UserService implements IUserService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
-    private void uniqueUser(UserRequest userRequest) {
-        Optional<Users> usersEmail = userRepository.findByEmailEqualsIgnoreCase(userRequest.getEmail());
-        if (usersEmail.isPresent()) {
-            throw new UserEmailExists();
-        }
-
-        Optional<Users> usersUsername = userRepository.findByUsernameEqualsIgnoreCase(userRequest.getUsername());
-        if (usersUsername.isPresent()) {
-            throw new UserUsernameExists();
-        }
-    }
-
     private UserResponse convertToResponse(Users users) {
         return modelMapper.map(users, UserResponse.class);
     }
@@ -63,18 +53,15 @@ public class UserService implements IUserService {
     @Transactional
     @Override
     public UserResponse createUser(UserRequest userRequest) {
-        uniqueUser(userRequest);
-        if (!UsernameValidator.isValid(userRequest.getUsername())) {
-            throw new UserUsernameInvalid();
+        Optional<Users> usersOptional = userRepository.findByEmailEqualsIgnoreCase(userRequest.getEmail());
+        if (usersOptional.isPresent()) {
+            throw new UserEmailExists();
         }
         LocalDate dob = userRequest.getDob().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         Period period = Period.between(dob, LocalDate.now());
 
         if (period.getYears() < 18) {
             throw new UserUnderage();
-        }
-        if (!UsernameValidator.isValid(userRequest.getUsername())) {
-            throw new UserUsernameInvalid();
         }
         if (!PasswordValidator.isValid(userRequest.getPassword())) {
             throw new UserPasswordInvalid();
@@ -100,9 +87,6 @@ public class UserService implements IUserService {
         if (!UsernameValidator.isValid(userUpdateRequest.getUsername())) {
             throw new UserUsernameInvalid();
         }
-        if (!EmailValidator.isValid(userUpdateRequest.getEmail())) {
-            throw new UserEmailInvalid();
-        }
         if (AlphabeticalValidator.isValid(userUpdateRequest.getFullname())) {
             throw new UserFullnameInvalid();
         }
@@ -117,13 +101,6 @@ public class UserService implements IUserService {
                 throw new UserUsernameExists();
             }
         }
-        if (!userUpdateRequest.getEmail().equals(updatedUsers.getEmail())) {
-            updatedUsers.setEmail(userUpdateRequest.getEmail());
-            Optional<Users> email = userRepository.findByEmailEqualsIgnoreCase(userUpdateRequest.getEmail());
-            if (email.isPresent()) {
-                throw new UserEmailExists();
-            }
-        }
 
         updatedUsers.setFullname(userUpdateRequest.getFullname());
         updatedUsers.setBio(userUpdateRequest.getBio());
@@ -131,6 +108,17 @@ public class UserService implements IUserService {
         userRepository.save(updatedUsers);
 
         return convertToResponse(updatedUsers);
+    }
+
+    @Override
+    public UserPictureResponse userPicture(UserPicture userPicture, UUID userId) {
+        Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
+                .orElseThrow(() -> new UserNotExists());
+
+//        users.setProfileUrl();
+        userRepository.save(users);
+
+        return new UserPictureResponse("");
     }
 
     @Override
@@ -191,5 +179,19 @@ public class UserService implements IUserService {
 
         users.setDeletedAt(LocalDateTime.now());
         userRepository.save(users);
+    }
+
+    @Override
+    public void togglePrivateAccount(UUID userId) {
+        Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
+                .orElseThrow(() -> new UserNotExists());
+
+        users.setIsPrivate(!users.getIsPrivate());
+        userRepository.save(users);
+    }
+
+    @Override
+    public void blockAccount(UUID userId) {
+
     }
 }

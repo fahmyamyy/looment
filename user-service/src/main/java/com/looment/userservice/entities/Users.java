@@ -1,11 +1,14 @@
 package com.looment.userservice.entities;
 
+import com.looment.userservice.dtos.follows.requests.FollowRequest;
+import com.looment.userservice.utils.RandomUser;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
@@ -27,7 +30,7 @@ public class Users {
     private String fullname;
 
     @Column(nullable = false, unique = true)
-    private String username;
+    private String username = "user" + RandomUser.random();
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -35,10 +38,18 @@ public class Users {
     @Column(nullable = false)
     private String password;
 
+    private String profileUrl;
+
     private String bio;
 
     @Column(nullable = false)
     private Date dob;
+
+    @Column(nullable = false)
+    private Boolean isPrivate = false;
+
+    @Column(name = "follow_request", nullable = false)
+    private Integer followRequest = 0;
 
     private Integer otp;
 
@@ -71,4 +82,19 @@ public class Users {
 
     @OneToMany(mappedBy = "follower", fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Follows> follower;
+
+    @OneToMany(mappedBy = "followed", fetch = FetchType.LAZY, orphanRemoval = true)
+    @Where(clause = "deleted_at IS NULL")
+    private List<FollowsRequest> followsRequestsfollowed;
+
+    @OneToMany(mappedBy = "follower", fetch = FetchType.LAZY, orphanRemoval = true)
+    @Where(clause = "deleted_at IS NULL")
+    private List<FollowsRequest> followsRequestsfollower;
+
+    public Integer getFollowRequest() {
+        if (followsRequestsfollowed != null) {
+            return followsRequestsfollowed.size();
+        }
+        return 0;
+    }
 }

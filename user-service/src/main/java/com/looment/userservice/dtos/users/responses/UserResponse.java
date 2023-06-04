@@ -16,7 +16,7 @@ public class UserResponse implements Serializable {
     private UUID id;
     private String fullname;
     private String username;
-    private String email;
+    private String profileUrl;
     private String bio;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy", timezone = "Asia/Jakarta")
     private Date dob;
