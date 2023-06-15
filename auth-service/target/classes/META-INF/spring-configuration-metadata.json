@@ -1,0 +1,22 @@
+{
+  "groups": [
+    {
+      "name": "rsa",
+      "type": "com.looment.authservice.configs.RSAKeyProperties",
+      "sourceType": "com.looment.authservice.configs.RSAKeyProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "rsa.private-key",
+      "type": "java.security.interfaces.RSAPrivateKey",
+      "sourceType": "com.looment.authservice.configs.RSAKeyProperties"
+    },
+    {
+      "name": "rsa.public-key",
+      "type": "java.security.interfaces.RSAPublicKey",
+      "sourceType": "com.looment.authservice.configs.RSAKeyProperties"
+    }
+  ],
+  "hints": []
+}
