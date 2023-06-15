@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface FollowRepository extends JpaRepository<Follows, UUID> {
-    Page<Follows> findByFollowed_IdEqualsAndDeletedAtIsNull(Pageable pageable, UUID userId);
-    Page<Follows> findByFollower_IdEqualsAndDeletedAtIsNull(Pageable pageable, UUID userId);
+    Page<Follows> findByFollowed_IdEqualsAndDeletedAtIsNullOrderByCreatedAtDesc(Pageable pageable, UUID userId);
+    Page<Follows> findByFollower_IdEqualsAndDeletedAtIsNullOrderByCreatedAtDesc(Pageable pageable, UUID userId);
     Optional<Follows> findByFollowed_IdEqualsAndFollower_IdEquals(UUID followedId, UUID followersId);
 }

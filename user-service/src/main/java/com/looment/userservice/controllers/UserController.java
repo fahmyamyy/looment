@@ -12,6 +12,7 @@ import com.looment.userservice.dtos.users.responses.UserPictureResponse;
 import com.looment.userservice.dtos.users.responses.UserResponse;
 import com.looment.userservice.dtos.users.responses.UserSimpleResponse;
 import com.looment.userservice.services.users.UserService;
+import com.looment.userservice.utils.BaseController;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.PageRequest;
@@ -28,52 +29,49 @@ import java.util.UUID;
 @RestController
 @RequestMapping("api/v1/users")
 @RequiredArgsConstructor
-public class UserController {
+public class UserController extends BaseController {
     private final UserService userService;
 
     @PostMapping
     public ResponseEntity<BaseResponse> createUser(@RequestBody UserRequest userRequest) {
         UserResponse userResponse = userService.createUser(userRequest);
-        return new ResponseEntity<>(BaseResponse.builder()
-                .message("Successfully create new User")
-                .data(userResponse)
-                .build(), HttpStatus.CREATED);
+        return responseCreated("Successfully create new User", userResponse);
     }
 
     @PatchMapping
     public ResponseEntity<BaseResponse> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, Principal principal) {
         UserResponse userResponse = userService.updateUser(userUpdateRequest, UUID.fromString(principal.getName()));
-        return new ResponseEntity<>(BaseResponse.builder()
-                .message("Successfully update User info")
-                .data(userResponse)
-                .build(), HttpStatus.OK);
+        return responseSuccess("Successfully update User info", userResponse);
     }
 
     @PostMapping("picture")
     public ResponseEntity<BaseResponse> userPicture(@RequestBody UserPicture userPicture, Principal principal) {
         UserPictureResponse userPictureResponse = userService.userPicture(userPicture, UUID.fromString(principal.getName()));
-        return new ResponseEntity<>(BaseResponse.builder()
-                .message("Successfully upload User picture")
-                .data(userPictureResponse)
-                .build(), HttpStatus.OK);
+        return responseSuccess("Successfully upload User picture", userPictureResponse);
     }
 
-    @GetMapping("info")
-    public ResponseEntity<BaseResponse> getByUserId(Principal principal) {
-        UserDetailResponse userDetailResponse = userService.getUserById(UUID.fromString(principal.getName()));
-        return new ResponseEntity<>(BaseResponse.builder()
-                .message("Successfully fetch User info")
-                .data(userDetailResponse)
-                .build(), HttpStatus.OK);
+    @GetMapping("info/{userId}")
+    public ResponseEntity<BaseResponse> getByUserId(@PathVariable UUID userId) {
+        UserDetailResponse userDetailResponse = userService.getUserById(userId);
+        return responseSuccess("Successfully fetch User info", userDetailResponse);
     }
 
     @PatchMapping("change-password")
     public ResponseEntity<BaseResponse> changePassword(@RequestBody UserPasswordRequest userPasswordRequest, Principal principal) {
         userService.changePassword(userPasswordRequest, UUID.fromString(principal.getName()));
-        return new ResponseEntity<>(BaseResponse.builder()
-                .message("Successfully update User password")
-                .data(Collections.emptyList())
-                .build(), HttpStatus.OK);
+        return responseSuccess("Successfully update User password");
+    }
+
+    @PatchMapping("private")
+    public ResponseEntity togglePrivateAccount(Principal principal) {
+        userService.togglePrivateAccount(UUID.fromString(principal.getName()));
+        return responseSuccess();
+    }
+
+    @PatchMapping("delete")
+    public ResponseEntity deleteAccount(Principal principal) {
+        userService.deleteAccount(UUID.fromString(principal.getName()));
+        return responseDelete();
     }
 
     @GetMapping("search")
@@ -86,36 +84,6 @@ public class UserController {
         Pageable pageable = PageRequest.of(offset, limit);
 
         Pair<List<UserSimpleResponse>, Pagination> pagination = userService.searchUsername(pageable, username);
-        return new PaginationResponse<>(
-                "Successfully fetch all Users username contains: " + username,
-                pagination.getLeft(),
-                pagination.getRight());
-    }
-
-    @PatchMapping("delete")
-    public ResponseEntity deleteAccount(Principal principal) {
-        userService.deleteAccount(UUID.fromString(principal.getName()));
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @PatchMapping("private")
-    public ResponseEntity togglePrivateAccount(Principal principal) {
-        userService.togglePrivateAccount(UUID.fromString(principal.getName()));
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @GetMapping("active")
-    public PaginationResponse<List<UserResponse>> getActiveUsers(
-            @RequestParam(name = "page", defaultValue = "1") Integer page,
-            @RequestParam(name = "limit", defaultValue = "5") Integer limit
-    ) {
-        Integer offset = page - 1;
-        Pageable pageable = PageRequest.of(offset, limit);
-
-        Pair<List<UserResponse>, Pagination> pagination = userService.getActiveUsers(pageable);
-        return new PaginationResponse<>(
-                "Successfully fetch all active Users",
-                pagination.getLeft(),
-                pagination.getRight());
+        return responsePagination("Successfully fetch all Users username contains: " + username, pagination.getLeft(), pagination.getRight());
     }
 }

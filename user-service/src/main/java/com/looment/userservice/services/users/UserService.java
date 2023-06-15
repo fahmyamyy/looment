@@ -63,10 +63,10 @@ public class UserService implements IUserService {
         if (period.getYears() < 18) {
             throw new UserUnderage();
         }
-        if (!PasswordValidator.isValid(userRequest.getPassword())) {
+        if (Boolean.FALSE.equals(PasswordValidator.isValid(userRequest.getPassword()))) {
             throw new UserPasswordInvalid();
         }
-        if (!EmailValidator.isValid(userRequest.getEmail())) {
+        if (Boolean.FALSE.equals(EmailValidator.isValid(userRequest.getEmail()))) {
             throw new UserEmailInvalid();
         }
 
@@ -84,15 +84,15 @@ public class UserService implements IUserService {
 
     @Override
     public UserResponse updateUser(UserUpdateRequest userUpdateRequest, UUID userId) {
-        if (!UsernameValidator.isValid(userUpdateRequest.getUsername())) {
+        if (Boolean.FALSE.equals(UsernameValidator.isValid(userUpdateRequest.getUsername()))) {
             throw new UserUsernameInvalid();
         }
-        if (AlphabeticalValidator.isValid(userUpdateRequest.getFullname())) {
+        if (Boolean.TRUE.equals(AlphabeticalValidator.isValid(userUpdateRequest.getFullname()))) {
             throw new UserFullnameInvalid();
         }
 
         Users updatedUsers = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
         if (!userUpdateRequest.getUsername().equals(updatedUsers.getUsername())) {
             updatedUsers.setUsername(userUpdateRequest.getUsername());
@@ -113,7 +113,7 @@ public class UserService implements IUserService {
     @Override
     public UserPictureResponse userPicture(UserPicture userPicture, UUID userId) {
         Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
 //        users.setProfileUrl();
         userRepository.save(users);
@@ -124,7 +124,7 @@ public class UserService implements IUserService {
     @Override
     public UserDetailResponse getUserById(UUID userId) {
         Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
         return modelMapper.map(users, UserDetailResponse.class);
     }
@@ -161,12 +161,12 @@ public class UserService implements IUserService {
 
     @Override
     public void changePassword(UserPasswordRequest userPasswordRequest, UUID userId) {
-        if (!PasswordValidator.isValid(userPasswordRequest.getPassword())) {
+        if (Boolean.FALSE.equals(PasswordValidator.isValid(userPasswordRequest.getPassword()))) {
             throw new UserPasswordInvalid();
         }
 
         Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
         users.setPassword(passwordEncoder.encode(userPasswordRequest.getPassword()));
         userRepository.save(users);
@@ -175,7 +175,7 @@ public class UserService implements IUserService {
     @Override
     public void deleteAccount(UUID userId) {
         Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
         users.setDeletedAt(LocalDateTime.now());
         userRepository.save(users);
@@ -184,7 +184,7 @@ public class UserService implements IUserService {
     @Override
     public void togglePrivateAccount(UUID userId) {
         Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
         users.setIsPrivate(!users.getIsPrivate());
         userRepository.save(users);

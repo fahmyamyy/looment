@@ -2,7 +2,7 @@ package com.looment.userservice.services.follows;
 
 import com.looment.userservice.dtos.Pagination;
 import com.looment.userservice.dtos.follows.requests.FollowRequest;
-import com.looment.userservice.dtos.users.responses.UserSimpleResponse;
+import com.looment.userservice.dtos.follows.responses.FollowResponse;
 import com.looment.userservice.entities.Follows;
 import com.looment.userservice.entities.FollowsRequest;
 import com.looment.userservice.entities.Users;
@@ -40,18 +40,6 @@ public class FollowService implements IFollowService {
     private final UserInfoRepository userInfoRepository;
     private final ModelMapper modelMapper;
 
-//    private Pair<List<UserSimpleResponse>, Pagination> getListPaginationPair(Page<Follows> followsPage) {
-//        List<UserSimpleResponse> userResponseList = followsPage.stream()
-//                .map(user -> modelMapper.map(user.g, UserSimpleResponse.class))
-//                .collect(Collectors.toList());
-//        Pagination pagination = new Pagination(
-//                usersPage.getTotalPages(),
-//                usersPage.getTotalElements(),
-//                usersPage.getNumber() + 1
-//        );
-//        return new ImmutablePair<>(userResponseList, pagination);
-//    }
-
     private Pair<List<Users>, List<UsersInfo>> validateUsers(UUID userOne, UUID userTwo) {
         Users optionalOne = userRepository.findById(userOne)
                 .orElseThrow(UserNotExists::new);
@@ -69,11 +57,11 @@ public class FollowService implements IFollowService {
     }
 
     @Override
-    public Pair<List<UserSimpleResponse>, Pagination> getFollowers(Pageable pageable, UUID userId) {
-        Page<Follows> followsPage = followRepository.findByFollowed_IdEqualsAndDeletedAtIsNull(pageable, userId);
+    public Pair<List<FollowResponse>, Pagination> getFollowers(Pageable pageable, UUID userId) {
+        Page<Follows> followsPage = followRepository.findByFollowed_IdEqualsAndDeletedAtIsNullOrderByCreatedAtDesc(pageable, userId);
 
-        List<UserSimpleResponse> userResponseList = followsPage.stream()
-                .map(user -> modelMapper.map(user.getFollower(), UserSimpleResponse.class))
+        List<FollowResponse> userResponseList = followsPage.stream()
+                .map(user -> modelMapper.map(user.getFollower(), FollowResponse.class))
                 .collect(Collectors.toList());
         Pagination pagination = new Pagination(
                 followsPage.getTotalPages(),
@@ -84,11 +72,11 @@ public class FollowService implements IFollowService {
     }
 
     @Override
-    public Pair<List<UserSimpleResponse>, Pagination> getFollowings(Pageable pageable, UUID userId) {
-        Page<Follows> followsPage = followRepository.findByFollower_IdEqualsAndDeletedAtIsNull(pageable, userId);
+    public Pair<List<FollowResponse>, Pagination> getFollowings(Pageable pageable, UUID userId) {
+        Page<Follows> followsPage = followRepository.findByFollower_IdEqualsAndDeletedAtIsNullOrderByCreatedAtDesc(pageable, userId);
 
-        List<UserSimpleResponse> userResponseList = followsPage.stream()
-                .map(user -> modelMapper.map(user.getFollowed(), UserSimpleResponse.class))
+        List<FollowResponse> userResponseList = followsPage.stream()
+                .map(user -> modelMapper.map(user.getFollowed(), FollowResponse.class))
                 .collect(Collectors.toList());
         Pagination pagination = new Pagination(
                 followsPage.getTotalPages(),

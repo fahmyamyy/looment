@@ -1,6 +1,5 @@
 package com.looment.userservice.entities;
 
-import com.looment.userservice.dtos.follows.requests.FollowRequest;
 import com.looment.userservice.utils.RandomUser;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
