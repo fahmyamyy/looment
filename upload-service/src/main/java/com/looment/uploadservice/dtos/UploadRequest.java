@@ -1,5 +1,6 @@
 package com.looment.uploadservice.dtos;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,8 +11,11 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UploadRequest implements Serializable {
-    private String fileName;
+    private String fileName = "";
+    @NotNull
     private String type;
+    @NotNull
     private String uploadedBy;
+    @NotNull
     private MultipartFile file;
 }
