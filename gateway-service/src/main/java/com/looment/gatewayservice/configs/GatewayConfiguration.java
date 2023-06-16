@@ -19,8 +19,8 @@ public class GatewayConfiguration {
     private String PORT_USER;
     @Value("${port.post}")
     private String PORT_POST;
-    @Value("${port.image}")
-    private String PORT_IMAGE;
+    @Value("${port.upload}")
+    private String PORT_UPLOAD;
     @Value("${port.messaging}")
     private String PORT_MESSAGING;
 
@@ -35,14 +35,14 @@ public class GatewayConfiguration {
                         .and().method("POST", "GET", "PATCH", "DELETE")
                         .filters(f -> f.filter(filter))
                         .uri(PORT_POST))
-                .route(r -> r.path("/api/v1/image/**")
-                        .and().method("POST")
-                        .filters(f -> f.filter(filter))
-                        .uri(PORT_IMAGE))
                 .route(r -> r.path("/api/v1/messaging/**")
                         .and().method("POST", "GET", "PATCH", "DELETE")
                         .filters(f -> f.filter(filter))
                         .uri(PORT_MESSAGING))
+                .route(r -> r.path("/api/v1/upload/**")
+                        .and().method("POST")
+                        .filters(f -> f.filter(filter))
+                        .uri(PORT_UPLOAD))
                 .route(r -> r.path("/api/v1/auth/**")
                         .uri(PORT_AUTH))
                 .build();
