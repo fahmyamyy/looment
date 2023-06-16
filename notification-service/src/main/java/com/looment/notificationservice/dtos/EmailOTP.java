@@ -10,7 +10,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Data
 @Builder
-@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EmailOTP implements Serializable {
     @JsonProperty("email")

@@ -10,7 +10,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Data
 @Builder
-@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EmailLocked implements Serializable {
     @JsonProperty("email")

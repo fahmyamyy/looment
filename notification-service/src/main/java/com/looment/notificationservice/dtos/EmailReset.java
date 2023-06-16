@@ -10,7 +10,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Data
 @Builder
-@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EmailReset implements Serializable {
     @JsonProperty("email")
@@ -28,5 +27,4 @@ public class EmailReset implements Serializable {
                 "\"password\": \"" + password + "\"" +
                 "}";
     }
-
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.looment.notificationservice.dtos.EmailLocked;
 import com.looment.notificationservice.dtos.EmailOTP;
 import com.looment.notificationservice.dtos.EmailReset;
+import com.looment.notificationservice.exceptions.KafkaMessageNull;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +30,8 @@ public class NotificationService {
             message = record.value();
             if (message == null) {
                 log.error("Kafka message is Null");
+                throw new KafkaMessageNull();
             }
-
         }
         return message;
     }
