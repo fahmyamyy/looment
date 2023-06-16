@@ -13,6 +13,7 @@ import com.looment.userservice.dtos.users.responses.UserResponse;
 import com.looment.userservice.dtos.users.responses.UserSimpleResponse;
 import com.looment.userservice.services.users.UserService;
 import com.looment.userservice.utils.BaseController;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.PageRequest;
@@ -33,19 +34,19 @@ public class UserController extends BaseController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<BaseResponse> createUser(@RequestBody UserRequest userRequest) {
+    public ResponseEntity<BaseResponse> createUser(@RequestBody @Valid UserRequest userRequest) {
         UserResponse userResponse = userService.createUser(userRequest);
         return responseCreated("Successfully create new User", userResponse);
     }
 
     @PatchMapping
-    public ResponseEntity<BaseResponse> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, Principal principal) {
+    public ResponseEntity<BaseResponse> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest, Principal principal) {
         UserResponse userResponse = userService.updateUser(userUpdateRequest, UUID.fromString(principal.getName()));
         return responseSuccess("Successfully update User info", userResponse);
     }
 
     @PostMapping("picture")
-    public ResponseEntity<BaseResponse> userPicture(@RequestBody UserPicture userPicture, Principal principal) {
+    public ResponseEntity<BaseResponse> userPicture(@RequestBody @Valid UserPicture userPicture, Principal principal) {
         UserPictureResponse userPictureResponse = userService.userPicture(userPicture, UUID.fromString(principal.getName()));
         return responseSuccess("Successfully upload User picture", userPictureResponse);
     }

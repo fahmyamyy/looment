@@ -31,7 +31,7 @@ public class FollowController extends BaseController {
     }
 
     @PostMapping("unfollow")
-    public ResponseEntity<BaseResponse> unfollow(@RequestBody FollowRequest followRequest) {
+    public ResponseEntity<BaseResponse> unfollow(@RequestBody @Valid FollowRequest followRequest) {
         followService.unfollow(followRequest);
         return responseSuccess("Successfully Unfollow User");
     }
