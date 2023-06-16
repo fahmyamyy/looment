@@ -32,10 +32,7 @@ public class RoomChatController extends BaseController {
         Pageable pageable = PageRequest.of(offset, limit);
 
         Pair<List<RoomChatResponse>, Pagination> pagination = roomChatService.getRoomChats(userId, pageable);
-        return new PaginationResponse<>(
-                "Successfully fetch RoomChats",
-                pagination.getLeft(),
-                pagination.getRight());
+        return responsePagination("Successfully fetch RoomChats", pagination.getLeft(), pagination.getRight());
     }
 
     @DeleteMapping("{roomChatId}")

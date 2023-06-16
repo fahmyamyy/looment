@@ -8,6 +8,7 @@ import com.looment.messageservice.dtos.messages.responses.MessageInfoResponse;
 import com.looment.messageservice.dtos.messages.responses.MessageResponse;
 import com.looment.messageservice.services.messages.MessageService;
 import com.looment.messageservice.utils.BaseController;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +26,7 @@ public class MessageController extends BaseController {
     private final MessageService messageService;
 
     @PostMapping
-    public ResponseEntity<BaseResponse> sendMessage(@RequestBody MessageRequest messageRequest) {
+    public ResponseEntity<BaseResponse> sendMessage(@RequestBody @Valid MessageRequest messageRequest) {
         MessageResponse messageResponse = messageService.sendMessage(messageRequest);
         return responseSuccess("Successfully send a Message", messageResponse);
     }
