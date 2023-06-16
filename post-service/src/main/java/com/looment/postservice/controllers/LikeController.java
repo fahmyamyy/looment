@@ -4,6 +4,7 @@ import com.looment.postservice.dtos.BaseResponse;
 import com.looment.postservice.dtos.requests.like.LikeRequest;
 import com.looment.postservice.services.like.LikeService;
 import com.looment.postservice.utils.BaseController;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class LikeController extends BaseController {
     private final LikeService likeService;
 
     @PatchMapping("{postId}")
-    public ResponseEntity<BaseResponse> toggleLikeComment(@PathVariable UUID postId, @RequestBody LikeRequest likeRequest) {
+    public ResponseEntity<BaseResponse> toggleLikeComment(@PathVariable UUID postId, @RequestBody @Valid LikeRequest likeRequest) {
         likeService.toggleLikePost(postId, likeRequest);
         return responseSuccess("Successfully like a post");
     }

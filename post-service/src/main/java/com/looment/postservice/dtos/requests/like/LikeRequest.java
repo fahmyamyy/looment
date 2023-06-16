@@ -1,6 +1,6 @@
 package com.looment.postservice.dtos.requests.like;
 
-import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,5 +11,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LikeRequest implements Serializable {
+    @NotNull
     private String users;
 }

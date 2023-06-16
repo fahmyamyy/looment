@@ -3,6 +3,8 @@ package com.looment.postservice.utils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Objects;
+
 public class MultipartFileValidator {
 
     public static boolean isValid(MultipartFile file) {
@@ -18,7 +20,7 @@ public class MultipartFileValidator {
         }
 
         // Check the file extension
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+        String originalFilename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         String fileExtension = getFileExtension(originalFilename);
         if (!isValidFileExtension(fileExtension)) {
             return false;

@@ -36,7 +36,7 @@ public class PostService implements IPostService {
     @Override
     public PostResponse updatePost(UUID postId, UpdatePostRequest updatePostRequest) {
         Posts posts = postRepository.findByIdAndDeletedAtIsNull(postId)
-                .orElseThrow(() -> new PostNotExists());
+                .orElseThrow(PostNotExists::new);
 
         posts.setCaption(updatePostRequest.getCaption());
         posts.setLocation(updatePostRequest.getLocation());
@@ -48,7 +48,7 @@ public class PostService implements IPostService {
     @Override
     public PostInfoResponse infoPost(UUID postId) {
         Posts posts = postRepository.findById(postId)
-                .orElseThrow(() -> new PostNotExists());
+                .orElseThrow(PostNotExists::new);
 
         return modelMapper.map(posts, PostInfoResponse.class);
     }
@@ -56,7 +56,7 @@ public class PostService implements IPostService {
     @Override
     public void toggleCommentable(UUID postId) {
         Posts posts = postRepository.findByIdAndDeletedAtIsNull(postId)
-                .orElseThrow(() -> new PostNotExists());
+                .orElseThrow(PostNotExists::new);
 
         posts.setCommentable(!posts.getCommentable());
         postRepository.save(posts);
@@ -65,7 +65,7 @@ public class PostService implements IPostService {
     @Override
     public void deletePost(UUID postId) {
         Posts posts = postRepository.findByIdAndDeletedAtIsNull(postId)
-                .orElseThrow(() -> new PostNotExists());
+                .orElseThrow(PostNotExists::new);
 
         posts.setDeletedAt(LocalDateTime.now());
         postRepository.save(posts);

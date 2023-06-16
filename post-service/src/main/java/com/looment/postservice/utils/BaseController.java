@@ -35,10 +35,7 @@ public class BaseController {
                 .build(), HttpStatus.OK);
     }
 
-    protected ResponseEntity<BaseResponse> responseDelete(String message) {
-        return new ResponseEntity<>(BaseResponse.builder()
-                .message(message)
-                .data(Collections.emptyList())
-                .build(), HttpStatus.NO_CONTENT);
+    protected ResponseEntity<BaseResponse> responseDelete() {
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

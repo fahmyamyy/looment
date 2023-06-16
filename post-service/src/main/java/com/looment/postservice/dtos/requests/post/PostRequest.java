@@ -1,5 +1,6 @@
 package com.looment.postservice.dtos.requests.post;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostRequest implements Serializable {
+    @NotNull
     private String users;
     private String caption;
     private String location;

@@ -29,10 +29,8 @@ public class Posts {
 //    @Column(nullable = false, updatable = false)
 //    private String url;
 
-    @Column(nullable = false)
     private String caption;
 
-    @Column(nullable = false)
     private String location;
 
     @Column(nullable = false)
