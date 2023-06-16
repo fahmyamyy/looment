@@ -1,9 +1,0 @@
-
-a
-java:S2184"FCast one of the operands of this multiplication operation to a "long".(™ü´ÿûÿÿÿÿ
-¦
-java:S4449"Annotate the parameter with @javax.annotation.Nullable in method 'cleanPath' declaration, or make sure that null can not be passed as argument.(ñ¤¦
-P
-java:S1118":Add a private constructor to hide the implicit public one.(òúñ„
-\
-java:S1126"AReplace this if-then-else statement by a single return statement.(•´âûÿÿÿÿ
