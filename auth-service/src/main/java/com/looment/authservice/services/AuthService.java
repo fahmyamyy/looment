@@ -68,7 +68,7 @@ public class AuthService implements IAuthService {
     @Override
     public void validateUser(UserLogin userLogin) {
         Users users = userRepository.findByUsernameEqualsIgnoreCaseAndDeletedAtIsNull(userLogin.getUsername())
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
         if (users.getLockedAt() != null && users.getLockedAt().plusMinutes(15).isAfter(LocalDateTime.now())) {
             throw new UserLocked();
@@ -107,16 +107,16 @@ public class AuthService implements IAuthService {
         if (period.getYears() < 18) {
             throw new UserUnderage();
         }
-        if (!UsernameValidator.isValid(userRegister.getUsername())) {
+        if (Boolean.FALSE.equals(UsernameValidator.isValid(userRegister.getUsername()))) {
             throw new UserUsernameInvalid();
         }
-        if (!EmailValidator.isValid(userRegister.getEmail())) {
+        if (Boolean.FALSE.equals(EmailValidator.isValid(userRegister.getEmail()))) {
             throw new UserEmailInvalid();
         }
-        if (!PasswordValidator.isValid(userRegister.getPassword())) {
+        if (Boolean.FALSE.equals(PasswordValidator.isValid(userRegister.getPassword()))) {
             throw new UserPasswordInvalid();
         }
-        if (AlphabeticalValidator.isValid(userRegister.getFullname())) {
+        if (Boolean.FALSE.equals(AlphabeticalValidator.isValid(userRegister.getFullname()))) {
             throw new UserFullnameInvalid();
         }
 
@@ -135,7 +135,7 @@ public class AuthService implements IAuthService {
     @Override
     public UserResponse info(UUID userId) {
         Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
         return modelMapper.map(users, UserResponse.class);
     }
@@ -164,7 +164,7 @@ public class AuthService implements IAuthService {
     @Override
     public void badCredentials(String username) {
         Users users = userRepository.findByUsernameEqualsIgnoreCaseAndDeletedAtIsNull(username)
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
         if (users.getAttemp() == 2) {
             if (users.getLockedAt() == null) {
@@ -194,7 +194,7 @@ public class AuthService implements IAuthService {
     @Override
     public void resetPassword(UUID userId) {
         Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
         String randomPass = RandomPassword.generate();
 
@@ -214,9 +214,9 @@ public class AuthService implements IAuthService {
     @Override
     public void changePassword(UUID userId, PasswordRequest passwordRequest) {
         Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
-                .orElseThrow(() -> new UserNotExists());
+                .orElseThrow(UserNotExists::new);
 
-        if (!PasswordValidator.isValid(passwordRequest.getPassword())) {
+        if (Boolean.FALSE.equals(PasswordValidator.isValid(passwordRequest.getPassword()))) {
             throw new UserPasswordInvalid();
         }
 
