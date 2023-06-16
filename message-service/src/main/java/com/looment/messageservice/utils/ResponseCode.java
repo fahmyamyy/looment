@@ -1,13 +1,10 @@
 package com.looment.messageservice.utils;
 
 public enum ResponseCode {
-    INTERNAL_ERROR("3000", "General. Internal server error"),
-    POST_NOT_FOUND("3001","Post not exists"),
-    COMMENT_NOT_FOUND("3002","Comment not exists"),
-    POST_NOT_COMMENTABLE("3003","Post not commentable"),
-    FILE_INVALID("3004","File Invalid"),
+    INTERNAL_ERROR("6000", "General. Internal server error"),
+    ROOMCHAT_NOT_FOUND("6001","RoomChat not exists"),
+    MESSAGE_NOT_FOUND("6002","Message not exists")
     ;
-
 
     private final String code;
     private final String message;

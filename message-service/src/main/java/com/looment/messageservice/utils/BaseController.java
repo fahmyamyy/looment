@@ -1,6 +1,8 @@
 package com.looment.messageservice.utils;
 
 import com.looment.messageservice.dtos.BaseResponse;
+import com.looment.messageservice.dtos.Pagination;
+import com.looment.messageservice.dtos.PaginationResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -35,10 +37,14 @@ public class BaseController {
                 .build(), HttpStatus.OK);
     }
 
-    protected ResponseEntity<BaseResponse> responseDelete(String message) {
-        return new ResponseEntity<>(BaseResponse.builder()
-                .message(message)
-                .data(Collections.emptyList())
-                .build(), HttpStatus.NO_CONTENT);
+    protected ResponseEntity<BaseResponse> responseDelete() {
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    protected PaginationResponse responsePagination(String message, Object data, Pagination pagination) {
+        return new PaginationResponse<>(
+                message,
+                data,
+                pagination);
     }
 }

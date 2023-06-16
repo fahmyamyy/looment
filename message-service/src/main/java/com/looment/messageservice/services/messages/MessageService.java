@@ -15,6 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ public class MessageService implements IMessageService {
 
     @Transactional
     @Override
+    @CacheEvict(value = "messages", allEntries = true)
     public MessageResponse sendMessage(MessageRequest messageRequest) {
         RoomChats roomChats;
 
@@ -64,6 +68,7 @@ public class MessageService implements IMessageService {
     }
 
     @Override
+    @Cacheable(value = "messages")
     public Pair<List<MessageInfoResponse>, Pagination> getMessages(UUID roomChatId, Pageable pageable) {
         Page<Messages> messagesPage = messageRepositories.findByRoomChats_IdOrderByCreatedAtDesc(roomChatId, pageable);
 
@@ -79,6 +84,7 @@ public class MessageService implements IMessageService {
     }
 
     @Override
+    @CacheEvict(value = "messages", allEntries = true)
     public void deleteMessage(UUID messageId) {
         Messages messages = messageRepositories.findMessagesByIdAndDeletedAtIsNull(messageId)
                 .orElseThrow(MessageNotExists::new);

@@ -23,7 +23,7 @@ public class RoomChatController extends BaseController {
     private final RoomChatService roomChatService;
 
     @GetMapping("{userId}" )
-    public PaginationResponse<List<RoomChatResponse>> getFollowings(
+    public PaginationResponse<List<RoomChatResponse>> getRoomChats(
             @RequestParam(name = "page", defaultValue = "1") Integer page,
             @RequestParam(name = "limit", defaultValue = "5") Integer limit,
             @PathVariable UUID userId
@@ -41,6 +41,6 @@ public class RoomChatController extends BaseController {
     @DeleteMapping("{roomChatId}")
     public ResponseEntity<BaseResponse> deleteRoomChat(@PathVariable UUID roomChatId) {
         roomChatService.deleteRoomChat(roomChatId);
-        return responseDelete("Successfully delete a Room Chat");
+        return responseDelete();
     }
 }

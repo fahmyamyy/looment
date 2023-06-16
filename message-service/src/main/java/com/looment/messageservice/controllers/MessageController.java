@@ -31,7 +31,7 @@ public class MessageController extends BaseController {
     }
 
     @GetMapping("{roomChatId}" )
-    public PaginationResponse<List<MessageInfoResponse>> getFollowings(
+    public PaginationResponse<List<MessageInfoResponse>> getMessages(
             @RequestParam(name = "page", defaultValue = "1") Integer page,
             @RequestParam(name = "limit", defaultValue = "10") Integer limit,
             @PathVariable UUID roomChatId
@@ -40,16 +40,12 @@ public class MessageController extends BaseController {
         Pageable pageable = PageRequest.of(offset, limit);
 
         Pair<List<MessageInfoResponse>, Pagination> pagination = messageService.getMessages(roomChatId, pageable);
-        return new PaginationResponse<>(
-                "Successfully fetch Messages",
-                pagination.getLeft(),
-                pagination.getRight());
+        return responsePagination("Successfully fetch Messages", pagination.getLeft(), pagination.getRight());
     }
 
     @DeleteMapping("{messageId}" )
     public ResponseEntity<BaseResponse> getFollowings(@PathVariable UUID messageId) {
         messageService.deleteMessage(messageId);
-        return responseDelete("Successfully delete a Message");
+        return responseDelete();
     }
-
 }
