@@ -1,8 +1,8 @@
 package com.looment.postservice.services.like;
 
+import com.looment.loomententity.entities.Likes;
+import com.looment.loomententity.entities.Posts;
 import com.looment.postservice.dtos.requests.like.LikeRequest;
-import com.looment.postservice.entities.Likes;
-import com.looment.postservice.entities.Posts;
 import com.looment.postservice.exceptions.PostNotExists;
 import com.looment.postservice.repositories.LikeRepository;
 import com.looment.postservice.repositories.PostRepository;

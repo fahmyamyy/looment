@@ -22,9 +22,10 @@ import java.util.function.Predicate;
 public class UserFilter implements GatewayFilter {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest request =  exchange.getRequest();
+        ServerHttpRequest request = exchange.getRequest();
         final List<String> apiEndpoints = List.of("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/reset-password/**");
 
         Predicate<ServerHttpRequest> isApiSecured = r -> apiEndpoints.stream()
@@ -42,9 +43,15 @@ public class UserFilter implements GatewayFilter {
 
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
-            ResponseEntity<ResponseDTO> response = restTemplate.exchange("http://localhost:8081/api/v1/auth/info", HttpMethod.GET, entity, ResponseDTO.class);
-            UserDTO userDTO = objectMapper.convertValue(response.getBody().getData(), UserDTO.class);
-            exchange.getRequest().mutate().header("id", String.valueOf(userDTO.getId())).build();
+            try {
+                ResponseEntity<ResponseDTO> response = restTemplate.exchange("http://localhost:8081/api/v1/auth/info", HttpMethod.GET, entity, ResponseDTO.class);
+                UserDTO userDTO = objectMapper.convertValue(response.getBody().getData(), UserDTO.class);
+                exchange.getRequest().mutate().header("id", String.valueOf(userDTO.getId())).build();
+            } catch (Exception e) {
+                ServerHttpResponse serverResponse = exchange.getResponse();
+                serverResponse.setStatusCode(HttpStatus.UNAUTHORIZED);
+                return serverResponse.setComplete();
+            }
         }
         return chain.filter(exchange);
     }

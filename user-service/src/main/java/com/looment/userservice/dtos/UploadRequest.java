@@ -1,5 +1,6 @@
-package com.looment.userservice.dtos.users.requests;
+package com.looment.userservice.dtos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,9 +13,10 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserPicture implements Serializable {
+public class UploadRequest implements Serializable {
     @NotNull
-    private UUID userId;
+    private String uploadedBy;
+    @JsonIgnore
     @NotNull
-    private MultipartFile file;
+    private transient MultipartFile file;
 }

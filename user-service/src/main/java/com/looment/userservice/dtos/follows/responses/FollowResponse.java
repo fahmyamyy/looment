@@ -13,6 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class FollowResponse implements Serializable {
     private UUID id;
+    private UUID userId;
     private String username;
     private String profileUrl;
     private LocalDateTime createdAt;

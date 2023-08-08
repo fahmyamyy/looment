@@ -1,17 +1,15 @@
-package com.looment.postservice.dtos;
+package com.looment.gatewayservice.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @Data
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
-public class BaseResponse<T> implements Serializable {
+public class ExceptionResponse implements Serializable {
+    private String code;
     private String message;
-    private T data;
 }

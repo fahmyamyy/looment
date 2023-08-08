@@ -3,13 +3,13 @@ package com.looment.authservice.services;
 import com.looment.authservice.dtos.requests.*;
 import com.looment.authservice.dtos.responses.TokenResponse;
 import com.looment.authservice.dtos.responses.UserResponse;
-import com.looment.authservice.entities.UserSecurity;
-import com.looment.authservice.entities.Users;
-import com.looment.authservice.entities.UsersInfo;
 import com.looment.authservice.exceptions.*;
 import com.looment.authservice.repositories.UserInfoRepository;
 import com.looment.authservice.repositories.UserRepository;
 import com.looment.authservice.utils.*;
+import com.looment.authservice.entities.UserSecurity;
+import com.looment.loomententity.entities.Users;
+import com.looment.loomententity.entities.UsersInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -40,18 +40,6 @@ public class AuthService implements IAuthService {
     private final ModelMapper modelMapper;
     private final JwtEncoder jwtEncoder;
     private final KafkaTemplate<String, Object> template;
-
-    private void uniqueUser(UserRegister userRegister) {
-        Optional<Users> usersEmail = userRepository.findByEmailEqualsIgnoreCaseAndDeletedAtIsNull(userRegister.getEmail());
-        if (usersEmail.isPresent()) {
-            throw new UserEmailExists();
-        }
-
-        Optional<Users> usersUsername = userRepository.findByUsernameEqualsIgnoreCaseAndDeletedAtIsNull(userRegister.getUsername());
-        if (usersUsername.isPresent()) {
-            throw new UserUsernameExists();
-        }
-    }
 
     private TokenResponse generateToken(Users users) {
         Instant now = Instant.now();
@@ -99,7 +87,10 @@ public class AuthService implements IAuthService {
 
     @Override
     public UserResponse register(UserRegister userRegister) {
-        uniqueUser(userRegister);
+        Optional<Users> usersOptional = userRepository.findByEmailEqualsIgnoreCaseAndDeletedAtIsNull(userRegister.getEmail());
+        if (usersOptional.isPresent()) {
+            throw new UserEmailExists();
+        }
 
         LocalDate dob = userRegister.getDob().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         Period period = Period.between(dob, LocalDate.now());
@@ -107,17 +98,11 @@ public class AuthService implements IAuthService {
         if (period.getYears() < 18) {
             throw new UserUnderage();
         }
-        if (Boolean.FALSE.equals(UsernameValidator.isValid(userRegister.getUsername()))) {
-            throw new UserUsernameInvalid();
-        }
-        if (Boolean.FALSE.equals(EmailValidator.isValid(userRegister.getEmail()))) {
-            throw new UserEmailInvalid();
-        }
         if (Boolean.FALSE.equals(PasswordValidator.isValid(userRegister.getPassword()))) {
             throw new UserPasswordInvalid();
         }
-        if (Boolean.FALSE.equals(AlphabeticalValidator.isValid(userRegister.getFullname()))) {
-            throw new UserFullnameInvalid();
+        if (Boolean.FALSE.equals(EmailValidator.isValid(userRegister.getEmail()))) {
+            throw new UserEmailInvalid();
         }
 
         Users newUsers = modelMapper.map(userRegister, Users.class);
@@ -130,6 +115,35 @@ public class AuthService implements IAuthService {
         userInfoRepository.save(usersInfo);
 
         return modelMapper.map(newUsers, UserResponse.class);
+//        LocalDate dob = userRegister.getDob().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+//        Period period = Period.between(dob, LocalDate.now());
+//
+//        if (period.getYears() < 18) {
+//            throw new UserUnderage();
+//        }
+//        if (Boolean.FALSE.equals(UsernameValidator.isValid(userRegister.getUsername()))) {
+//            throw new UserUsernameInvalid();
+//        }
+//        if (Boolean.FALSE.equals(EmailValidator.isValid(userRegister.getEmail()))) {
+//            throw new UserEmailInvalid();
+//        }
+//        if (Boolean.FALSE.equals(PasswordValidator.isValid(userRegister.getPassword()))) {
+//            throw new UserPasswordInvalid();
+//        }
+//        if (Boolean.FALSE.equals(AlphabeticalValidator.isValid(userRegister.getFullname()))) {
+//            throw new UserFullnameInvalid();
+//        }
+//
+//        Users newUsers = modelMapper.map(userRegister, Users.class);
+//        newUsers.setPassword(passwordEncoder.encode(userRegister.getPassword()));
+//
+//        UsersInfo usersInfo = new UsersInfo();
+//        usersInfo.setUsers(newUsers);
+//
+//        userRepository.save(newUsers);
+//        userInfoRepository.save(usersInfo);
+//
+//        return modelMapper.map(newUsers, UserResponse.class);
     }
 
     @Override

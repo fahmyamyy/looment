@@ -3,10 +3,8 @@ package com.looment.userservice.controllers;
 import com.looment.userservice.dtos.BaseResponse;
 import com.looment.userservice.dtos.Pagination;
 import com.looment.userservice.dtos.PaginationResponse;
-import com.looment.userservice.dtos.users.requests.UserPasswordRequest;
-import com.looment.userservice.dtos.users.requests.UserPicture;
-import com.looment.userservice.dtos.users.requests.UserRequest;
-import com.looment.userservice.dtos.users.requests.UserUpdateRequest;
+import com.looment.userservice.dtos.UploadRequest;
+import com.looment.userservice.dtos.users.requests.*;
 import com.looment.userservice.dtos.users.responses.UserDetailResponse;
 import com.looment.userservice.dtos.users.responses.UserPictureResponse;
 import com.looment.userservice.dtos.users.responses.UserResponse;
@@ -18,17 +16,14 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/v1/users")
+@RequestMapping("api/v1/user")
 @RequiredArgsConstructor
 public class UserController extends BaseController {
     private final UserService userService;
@@ -40,15 +35,21 @@ public class UserController extends BaseController {
     }
 
     @PatchMapping
-    public ResponseEntity<BaseResponse> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest, Principal principal) {
-        UserResponse userResponse = userService.updateUser(userUpdateRequest, UUID.fromString(principal.getName()));
+    public ResponseEntity<BaseResponse> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest) {
+        UserResponse userResponse = userService.updateUser(userUpdateRequest);
         return responseSuccess("Successfully update User info", userResponse);
     }
 
     @PostMapping("picture")
-    public ResponseEntity<BaseResponse> userPicture(@RequestBody @Valid UserPicture userPicture, Principal principal) {
-        UserPictureResponse userPictureResponse = userService.userPicture(userPicture, UUID.fromString(principal.getName()));
+    public ResponseEntity<BaseResponse> userPicture(@ModelAttribute @Valid UploadRequest uploadRequest) {
+        UserPictureResponse userPictureResponse = userService.userPicture(uploadRequest);
         return responseSuccess("Successfully upload User picture", userPictureResponse);
+    }
+
+    @PatchMapping("change-password")
+    public ResponseEntity<BaseResponse> changePassword(@RequestBody UserPasswordRequest userPasswordRequest) {
+        userService.changePassword(userPasswordRequest);
+        return responseSuccess("Successfully update User password");
     }
 
     @GetMapping("info/{userId}")
@@ -57,21 +58,15 @@ public class UserController extends BaseController {
         return responseSuccess("Successfully fetch User info", userDetailResponse);
     }
 
-    @PatchMapping("change-password")
-    public ResponseEntity<BaseResponse> changePassword(@RequestBody UserPasswordRequest userPasswordRequest, Principal principal) {
-        userService.changePassword(userPasswordRequest, UUID.fromString(principal.getName()));
-        return responseSuccess("Successfully update User password");
-    }
-
-    @PatchMapping("private")
-    public ResponseEntity togglePrivateAccount(Principal principal) {
-        userService.togglePrivateAccount(UUID.fromString(principal.getName()));
+    @PatchMapping("private/{userId}")
+    public ResponseEntity togglePrivateAccount(@PathVariable UUID userId) {
+        userService.togglePrivateAccount(userId);
         return responseSuccess();
     }
 
-    @PatchMapping("delete")
-    public ResponseEntity deleteAccount(Principal principal) {
-        userService.deleteAccount(UUID.fromString(principal.getName()));
+    @PatchMapping("delete/{userId}")
+    public ResponseEntity deleteAccount(@PathVariable UUID userId) {
+        userService.deleteAccount(userId);
         return responseDelete();
     }
 

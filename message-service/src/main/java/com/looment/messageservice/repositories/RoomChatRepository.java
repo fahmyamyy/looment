@@ -1,6 +1,6 @@
 package com.looment.messageservice.repositories;
 
-import com.looment.messageservice.entities.RoomChats;
+import com.looment.loomententity.entities.RoomChats;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -6,11 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserPasswordRequest implements Serializable {
+    @NotNull
+    private UUID userId;
     @NotNull
     private String password;
 }

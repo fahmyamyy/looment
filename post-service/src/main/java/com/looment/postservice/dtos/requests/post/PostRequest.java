@@ -16,5 +16,5 @@ public class PostRequest implements Serializable {
     private String users;
     private String caption;
     private String location;
-//    private MultipartFile file;
+    private MultipartFile file;
 }

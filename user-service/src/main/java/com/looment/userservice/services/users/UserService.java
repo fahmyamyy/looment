@@ -1,16 +1,14 @@
 package com.looment.userservice.services.users;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.looment.loomententity.entities.Users;
+import com.looment.loomententity.entities.UsersInfo;
+import com.looment.userservice.dtos.BaseResponse;
 import com.looment.userservice.dtos.Pagination;
-import com.looment.userservice.dtos.users.requests.UserPasswordRequest;
-import com.looment.userservice.dtos.users.requests.UserPicture;
-import com.looment.userservice.dtos.users.requests.UserUpdateRequest;
-import com.looment.userservice.dtos.users.responses.UserDetailResponse;
-import com.looment.userservice.dtos.users.requests.UserRequest;
-import com.looment.userservice.dtos.users.responses.UserPictureResponse;
-import com.looment.userservice.dtos.users.responses.UserResponse;
-import com.looment.userservice.dtos.users.responses.UserSimpleResponse;
-import com.looment.userservice.entities.UsersInfo;
-import com.looment.userservice.entities.Users;
+import com.looment.userservice.dtos.UploadRequest;
+import com.looment.userservice.dtos.UploadResponse;
+import com.looment.userservice.dtos.users.requests.*;
+import com.looment.userservice.dtos.users.responses.*;
 import com.looment.userservice.exceptions.users.*;
 import com.looment.userservice.repositories.UserInfoRepository;
 import com.looment.userservice.repositories.UserRepository;
@@ -26,8 +24,14 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,7 +48,9 @@ public class UserService implements IUserService {
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
     private final ModelMapper modelMapper;
+    private final ObjectMapper objectMapper;
     private final PasswordEncoder passwordEncoder;
+    private final WebClient webClient;
 
     private UserResponse convertToResponse(Users users) {
         return modelMapper.map(users, UserResponse.class);
@@ -83,7 +89,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserResponse updateUser(UserUpdateRequest userUpdateRequest, UUID userId) {
+    public UserResponse updateUser(UserUpdateRequest userUpdateRequest) {
         if (Boolean.FALSE.equals(UsernameValidator.isValid(userUpdateRequest.getUsername()))) {
             throw new UserUsernameInvalid();
         }
@@ -91,7 +97,7 @@ public class UserService implements IUserService {
             throw new UserFullnameInvalid();
         }
 
-        Users updatedUsers = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
+        Users updatedUsers = userRepository.findByDeletedAtIsNullAndIdEquals(userUpdateRequest.getUserId())
                 .orElseThrow(UserNotExists::new);
 
         if (!userUpdateRequest.getUsername().equals(updatedUsers.getUsername())) {
@@ -111,14 +117,16 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserPictureResponse userPicture(UserPicture userPicture, UUID userId) {
-        Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
+    public UserPictureResponse userPicture(UploadRequest uploadRequest) {
+        Users users = userRepository.findByDeletedAtIsNullAndIdEquals(UUID.fromString(uploadRequest.getUploadedBy()))
                 .orElseThrow(UserNotExists::new);
 
-//        users.setProfileUrl();
+        BaseResponse<UploadResponse> responseUpload = fetchDataFromAPI(uploadRequest);
+        UploadResponse response = objectMapper.convertValue(responseUpload.getData(), UploadResponse.class);
+        users.setProfileUrl(response.getUrl());
         userRepository.save(users);
 
-        return new UserPictureResponse("");
+        return new UserPictureResponse(users.getProfileUrl());
     }
 
     @Override
@@ -160,12 +168,12 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void changePassword(UserPasswordRequest userPasswordRequest, UUID userId) {
+    public void changePassword(UserPasswordRequest userPasswordRequest) {
         if (Boolean.FALSE.equals(PasswordValidator.isValid(userPasswordRequest.getPassword()))) {
             throw new UserPasswordInvalid();
         }
 
-        Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userId)
+        Users users = userRepository.findByDeletedAtIsNullAndIdEquals(userPasswordRequest.getUserId())
                 .orElseThrow(UserNotExists::new);
 
         users.setPassword(passwordEncoder.encode(userPasswordRequest.getPassword()));
@@ -193,5 +201,34 @@ public class UserService implements IUserService {
     @Override
     public void blockAccount(UUID userId) {
 
+    }
+
+    public BaseResponse fetchDataFromAPI(UploadRequest uploadRequest) {
+        try {
+            return webClient
+                    .post()
+                    .uri("http://localhost:8084/api/v1/upload/firebase")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(BodyInserters.fromMultipartData(createMultipartData(uploadRequest)))
+                    .retrieve()
+                    .bodyToMono(BaseResponse.class)
+                    .block();
+        } catch (Exception e) {
+            throw e;
+//            String[] code = e.getMessage().split(" ");
+//            if (code[0].equals("404")) {
+//                throw new ReservationNotFoundRoom();
+//            } else if (code[0].equals("Connection")) {
+//                throw new ServerException("Connection Refused");
+//            }
+        }
+    }
+
+    private MultiValueMap<String, HttpEntity<?>> createMultipartData(UploadRequest uploadRequest) {
+        MultipartBodyBuilder builder = new MultipartBodyBuilder();
+        builder.part("file", uploadRequest.getFile().getResource());
+        builder.part("uploadedBy", uploadRequest.getUploadedBy());
+
+        return builder.build();
     }
 }

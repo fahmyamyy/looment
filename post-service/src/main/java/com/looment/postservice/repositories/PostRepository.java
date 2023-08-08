@@ -1,6 +1,6 @@
 package com.looment.postservice.repositories;
 
-import com.looment.postservice.entities.Posts;
+import com.looment.loomententity.entities.Posts;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

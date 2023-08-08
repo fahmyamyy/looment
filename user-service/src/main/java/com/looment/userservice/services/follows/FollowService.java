@@ -3,10 +3,9 @@ package com.looment.userservice.services.follows;
 import com.looment.userservice.dtos.Pagination;
 import com.looment.userservice.dtos.follows.requests.FollowRequest;
 import com.looment.userservice.dtos.follows.responses.FollowResponse;
-import com.looment.userservice.entities.Follows;
-import com.looment.userservice.entities.FollowsRequest;
-import com.looment.userservice.entities.Users;
-import com.looment.userservice.entities.UsersInfo;
+import com.looment.loomententity.entities.Follows;
+import com.looment.loomententity.entities.Users;
+import com.looment.loomententity.entities.UsersInfo;
 import com.looment.userservice.exceptions.follows.FollowsDuplicate;
 import com.looment.userservice.exceptions.follows.FollowsNotExists;
 import com.looment.userservice.exceptions.users.UserInfoNotExists;
@@ -58,11 +57,18 @@ public class FollowService implements IFollowService {
 
     @Override
     public Pair<List<FollowResponse>, Pagination> getFollowers(Pageable pageable, UUID userId) {
-        Page<Follows> followsPage = followRepository.findByFollowed_IdEqualsAndDeletedAtIsNullOrderByCreatedAtDesc(pageable, userId);
+        Page<Follows> followsPage = followRepository.findFollowers(pageable, userId);
 
         List<FollowResponse> userResponseList = followsPage.stream()
-                .map(user -> modelMapper.map(user.getFollower(), FollowResponse.class))
-                .collect(Collectors.toList());
+                .map(followPage -> {
+                    FollowResponse followResponse = new FollowResponse();
+                    followResponse.setId(followPage.getId());
+                    followResponse.setUserId(followPage.getFollower().getId());
+                    followResponse.setUsername(followPage.getFollower().getUsername());
+                    followResponse.setProfileUrl(followPage.getFollower().getProfileUrl());
+                    followResponse.setCreatedAt(followPage.getFollower().getCreatedAt());
+                    return followResponse;
+                }).toList();
         Pagination pagination = new Pagination(
                 followsPage.getTotalPages(),
                 followsPage.getTotalElements(),
@@ -73,11 +79,40 @@ public class FollowService implements IFollowService {
 
     @Override
     public Pair<List<FollowResponse>, Pagination> getFollowings(Pageable pageable, UUID userId) {
-        Page<Follows> followsPage = followRepository.findByFollower_IdEqualsAndDeletedAtIsNullOrderByCreatedAtDesc(pageable, userId);
+        Page<Follows> followsPage = followRepository.findFollowings(pageable, userId);
 
         List<FollowResponse> userResponseList = followsPage.stream()
-                .map(user -> modelMapper.map(user.getFollowed(), FollowResponse.class))
-                .collect(Collectors.toList());
+                .map(followPage -> {
+                    FollowResponse followResponse = new FollowResponse();
+                    followResponse.setId(followPage.getId());
+                    followResponse.setUserId(followPage.getFollowed().getId());
+                    followResponse.setUsername(followPage.getFollowed().getUsername());
+                    followResponse.setProfileUrl(followPage.getFollowed().getProfileUrl());
+                    followResponse.setCreatedAt(followPage.getFollowed().getCreatedAt());
+                    return followResponse;
+                }).toList();
+        Pagination pagination = new Pagination(
+                followsPage.getTotalPages(),
+                followsPage.getTotalElements(),
+                followsPage.getNumber() + 1
+        );
+        return new ImmutablePair<>(userResponseList, pagination);
+    }
+
+    @Override
+    public Pair<List<FollowResponse>, Pagination> getFollowRequest(Pageable pageable, UUID userId) {
+        Page<Follows> followsPage = followRepository.findByFollowed_IdEqualsAndIsRequestIsTrue(pageable, userId);
+
+        List<FollowResponse> userResponseList = followsPage.stream()
+                .map(followPage -> {
+                    FollowResponse followResponse = new FollowResponse();
+                    followResponse.setId(followPage.getId());
+                    followResponse.setUserId(followPage.getFollower().getId());
+                    followResponse.setUsername(followPage.getFollower().getUsername());
+                    followResponse.setProfileUrl(followPage.getFollower().getProfileUrl());
+                    followResponse.setCreatedAt(followPage.getFollower().getCreatedAt());
+                    return followResponse;
+                }).toList();
         Pagination pagination = new Pagination(
                 followsPage.getTotalPages(),
                 followsPage.getTotalElements(),
@@ -95,38 +130,34 @@ public class FollowService implements IFollowService {
 
         Users targetUsers = users.getLeft().get(0);
 
-        if (optionalFollows.isEmpty() && targetUsers.getIsPrivate()) {
-            FollowsRequest followsRequest = new FollowsRequest();
-            followsRequest.setFollowed(users.getLeft().get(0));
-            followsRequest.setFollower(users.getLeft().get(1));
-
-            followRequestRepository.save(followsRequest);
-        } else {
-            Follows newFollows = new Follows();
-            if (optionalFollows.isPresent()) {
-                Follows existingFollows = optionalFollows.get();
-                if (existingFollows.getDeletedAt() == null) {
-                    throw new FollowsDuplicate();
-                }
-
-                newFollows = existingFollows;
-                newFollows.setCreatedAt(LocalDateTime.now());
-                newFollows.setUpdatedAt(LocalDateTime.now());
-                newFollows.setDeletedAt(null);
-            } else {
-                newFollows.setFollowed(users.getLeft().get(0));
-                newFollows.setFollower(users.getLeft().get(1));
+        Follows follows = new Follows();
+        if (optionalFollows.isPresent()) {
+            Follows existingFollows = optionalFollows.get();
+            if (existingFollows.getDeletedAt() == null) {
+                throw new FollowsDuplicate();
             }
-
-            UsersInfo followed = users.getRight().get(0);
-            followed.setFollowers(followed.getFollowers() + 1);
-
-            UsersInfo follower = users.getRight().get(1);
-            follower.setFollowings(follower.getFollowings() + 1);
-
-            followRepository.save(newFollows);
-            userInfoRepository.saveAll(List.of(followed, follower));
+            follows = existingFollows;
+            follows.setCreatedAt(LocalDateTime.now());
+            follows.setUpdatedAt(LocalDateTime.now());
+            follows.setDeletedAt(null);
+        } else {
+            follows.setFollowed(users.getLeft().get(0));
+            follows.setFollower(users.getLeft().get(1));
         }
+
+        if (Boolean.TRUE.equals(targetUsers.getIsPrivate())) {
+            follows.setIsRequest(true);
+        }
+
+        UsersInfo followed = users.getRight().get(0);
+        followed.setFollowers(followed.getFollowers() + 1);
+
+        UsersInfo follower = users.getRight().get(1);
+        follower.setFollowings(follower.getFollowings() + 1);
+
+        followRepository.save(follows);
+        userInfoRepository.saveAll(List.of(followed, follower));
+
     }
 
     @Transactional
@@ -143,13 +174,36 @@ public class FollowService implements IFollowService {
         Follows follows = optionalFollows.get();
         follows.setDeletedAt(LocalDateTime.now());
 
+        if (Boolean.TRUE.equals(follows.getIsRequest())) {
+            follows.setIsRequest(false);
+        }
+
         UsersInfo followed = users.getRight().get(0);
         followed.setFollowers(followed.getFollowers() - 1);
 
         UsersInfo follower = users.getRight().get(1);
-        follower.setFollowings(follower.getFollowings() - 1 );
+        follower.setFollowings(follower.getFollowings() - 1);
 
         followRepository.save(follows);
         userInfoRepository.saveAll(List.of(followed, follower));
+    }
+
+    @Override
+    public void acceptRequest(UUID followId) {
+        Follows follows = followRepository.findById(followId)
+                .orElseThrow(FollowsNotExists::new);
+
+        follows.setIsRequest(false);
+        followRepository.save(follows);
+    }
+
+    @Override
+    public void declineRequest(UUID followId) {
+        Follows follows = followRepository.findById(followId)
+                .orElseThrow(FollowsNotExists::new);
+
+        follows.setIsRequest(false);
+        follows.setDeletedAt(LocalDateTime.now());
+        followRepository.save(follows);
     }
 }

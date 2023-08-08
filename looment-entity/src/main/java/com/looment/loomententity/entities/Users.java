@@ -77,23 +77,25 @@ public class Users {
     private UsersInfo usersInfo;
 
     @OneToMany(mappedBy = "followed", fetch = FetchType.LAZY, orphanRemoval = true)
+    @Where(clause = "deleted_at IS NULL")
     private List<Follows> followed;
 
     @OneToMany(mappedBy = "follower", fetch = FetchType.LAZY, orphanRemoval = true)
+    @Where(clause = "deleted_at IS NULL")
     private List<Follows> follower;
 
-    @OneToMany(mappedBy = "followed", fetch = FetchType.LAZY, orphanRemoval = true)
-    @Where(clause = "deleted_at IS NULL")
-    private List<FollowsRequest> followsRequestsfollowed;
-
-    @OneToMany(mappedBy = "follower", fetch = FetchType.LAZY, orphanRemoval = true)
-    @Where(clause = "deleted_at IS NULL")
-    private List<FollowsRequest> followsRequestsfollower;
-
-    public Integer getFollowRequest() {
-        if (followsRequestsfollowed != null) {
-            return followsRequestsfollowed.size();
-        }
-        return 0;
-    }
+//    @OneToMany(mappedBy = "followed", fetch = FetchType.LAZY, orphanRemoval = true)
+//    @Where(clause = "deleted_at IS NULL")
+//    private List<FollowsRequest> followsRequestsfollowed;
+//
+//    @OneToMany(mappedBy = "follower", fetch = FetchType.LAZY, orphanRemoval = true)
+//    @Where(clause = "deleted_at IS NULL")
+//    private List<FollowsRequest> followsRequestsfollower;
+//
+//    public Integer getFollowRequest() {
+//        if (followsRequestsfollowed != null) {
+//            return followsRequestsfollowed.size();
+//        }
+//        return 0;
+//    }
 }

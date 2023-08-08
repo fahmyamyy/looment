@@ -1,4 +1,4 @@
-package com.looment.uploadservice.entities;
+package com.looment.loomententity.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

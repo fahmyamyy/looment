@@ -1,11 +1,11 @@
 package com.looment.messageservice.services.messages;
 
+import com.looment.loomententity.entities.Messages;
+import com.looment.loomententity.entities.RoomChats;
 import com.looment.messageservice.dtos.Pagination;
 import com.looment.messageservice.dtos.messages.requests.MessageRequest;
 import com.looment.messageservice.dtos.messages.responses.MessageInfoResponse;
 import com.looment.messageservice.dtos.messages.responses.MessageResponse;
-import com.looment.messageservice.entities.Messages;
-import com.looment.messageservice.entities.RoomChats;
 import com.looment.messageservice.exceptions.messages.MessageNotExists;
 import com.looment.messageservice.exceptions.roomchats.RoomChatNotExists;
 import com.looment.messageservice.repositories.MessageRepositories;
@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.modelmapper.ModelMapper;
-import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;

@@ -19,7 +19,5 @@ public class UserRequest implements Serializable {
     @NotNull
     private String password;
     @NotNull
-    private String bio;
-    @NotNull
     private Date dob;
 }

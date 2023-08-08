@@ -7,11 +7,14 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.sql.Date;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserUpdateRequest implements Serializable {
+    @NotNull
+    private UUID userId;
     @NotNull
     private String fullname;
     @NotNull

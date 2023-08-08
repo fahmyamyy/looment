@@ -26,8 +26,8 @@ public class Posts {
     @Column(nullable = false, updatable = false)
     private String users;
 
-//    @Column(nullable = false, updatable = false)
-//    private String url;
+    @Column(nullable = false, updatable = false)
+    private String url;
 
     private String caption;
 

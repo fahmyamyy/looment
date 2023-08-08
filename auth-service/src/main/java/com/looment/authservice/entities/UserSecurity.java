@@ -1,5 +1,6 @@
 package com.looment.authservice.entities;
 
+import com.looment.loomententity.entities.Users;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

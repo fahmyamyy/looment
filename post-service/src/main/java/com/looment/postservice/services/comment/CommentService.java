@@ -1,11 +1,11 @@
 package com.looment.postservice.services.comment;
 
+import com.looment.loomententity.entities.CommentLikes;
+import com.looment.loomententity.entities.Comments;
+import com.looment.loomententity.entities.Posts;
 import com.looment.postservice.dtos.requests.comment.CommentRequest;
 import com.looment.postservice.dtos.requests.comment.LikeCommentRequest;
 import com.looment.postservice.dtos.responses.comment.CommentResponse;
-import com.looment.postservice.entities.CommentLikes;
-import com.looment.postservice.entities.Comments;
-import com.looment.postservice.entities.Posts;
 import com.looment.postservice.exceptions.CommentNotExists;
 import com.looment.postservice.exceptions.PostNotCommentable;
 import com.looment.postservice.exceptions.PostNotExists;
@@ -61,7 +61,7 @@ public class CommentService implements ICommentService {
         } else {
             CommentLikes commentLikes = optional.get();
             Boolean isDeleted = commentLikes.getDeletedAt() != null;
-            commentLikes.setDeletedAt(isDeleted ? null : LocalDateTime.now());
+            commentLikes.setDeletedAt(Boolean.TRUE.equals(isDeleted) ? null : LocalDateTime.now());
             commentLikeRepository.save(commentLikes);
         }
     }

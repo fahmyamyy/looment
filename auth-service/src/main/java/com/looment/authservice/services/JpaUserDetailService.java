@@ -1,9 +1,9 @@
 package com.looment.authservice.services;
 
-import com.looment.authservice.entities.UserSecurity;
-import com.looment.authservice.entities.Users;
 import com.looment.authservice.exceptions.UserNotExists;
 import com.looment.authservice.repositories.UserRepository;
+import com.looment.authservice.entities.UserSecurity;
+import com.looment.loomententity.entities.Users;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -41,7 +41,7 @@ public class AuthController extends BaseController {
         return responseSuccess("Successfully logged in", tokenResponse);
     }
 
-    @PostMapping("info")
+    @GetMapping("info")
     public ResponseEntity<BaseResponse> infoUser(Principal principal) {
         UserResponse userResponse = authService.info(UUID.fromString(principal.getName()));
         return responseSuccess("Successfully fetch User info", userResponse);

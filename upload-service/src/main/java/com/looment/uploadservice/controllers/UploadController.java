@@ -22,9 +22,9 @@ public class UploadController extends BaseController {
         return responseCreated("Successfully upload a File to Firebase", uploadResponse);
     }
 
-    @PostMapping("s3")
-    public ResponseEntity<BaseResponse> uploadS3(@ModelAttribute UploadRequest uploadRequest) {
-        UploadResponse uploadResponse =  uploadService.uploadFileS3(uploadRequest);
-        return responseCreated("Successfully upload a File to AWS S3", uploadResponse);
-    }
+//    @PostMapping("s3")
+//    public ResponseEntity<BaseResponse> uploadS3(@ModelAttribute UploadRequest uploadRequest) {
+//        UploadResponse uploadResponse =  uploadService.uploadFileS3(uploadRequest);
+//        return responseCreated("Successfully upload a File to AWS S3", uploadResponse);
+//    }
 }

@@ -15,13 +15,9 @@ public class UserRegister implements Serializable {
     @NotNull
     private String fullname;
     @NotNull
-    private String username;
-    @NotNull
     private String email;
     @NotNull
     private String password;
-    @NotNull
-    private String bio;
     @NotNull
     private Date dob;
 }

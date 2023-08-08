@@ -1,6 +1,6 @@
 package com.looment.authservice.repositories;
 
-import com.looment.authservice.entities.Users;
+import com.looment.loomententity.entities.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

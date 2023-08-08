@@ -1,15 +1,14 @@
 package com.looment.messageservice.services.roomchats;
 
+import com.looment.loomententity.entities.RoomChats;
 import com.looment.messageservice.dtos.Pagination;
 import com.looment.messageservice.dtos.roomchats.responses.RoomChatResponse;
-import com.looment.messageservice.entities.RoomChats;
 import com.looment.messageservice.exceptions.roomchats.RoomChatNotExists;
 import com.looment.messageservice.repositories.RoomChatRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.modelmapper.ModelMapper;
-import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;

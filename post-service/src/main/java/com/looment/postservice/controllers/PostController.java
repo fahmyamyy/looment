@@ -21,7 +21,7 @@ public class PostController extends BaseController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<BaseResponse> createPost(@RequestBody @Valid PostRequest postRequest) {
+    public ResponseEntity<BaseResponse> createPost(@ModelAttribute @Valid PostRequest postRequest) {
         PostResponse postResponse = postService.newPost(postRequest);
         return responseCreated("Successfully create new Post", postResponse);
     }

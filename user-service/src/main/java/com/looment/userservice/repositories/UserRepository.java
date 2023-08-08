@@ -1,6 +1,6 @@
 package com.looment.userservice.repositories;
 
-import com.looment.userservice.entities.Users;
+import com.looment.loomententity.entities.Users;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

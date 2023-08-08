@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users_follower")
+@Table(name = "users_follow")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -28,6 +28,9 @@ public class Follows {
     @ManyToOne
     @JoinColumn(nullable = false, updatable = false)
     private Users follower;
+
+    @Column(nullable = false, name = "is_request")
+    private Boolean isRequest = false;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false, name = "created_at")
